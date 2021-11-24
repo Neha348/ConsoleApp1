@@ -18,13 +18,16 @@ namespace Coding.Challenge.Firstname.Lastname
             Car c = new Car(); 
             var title = document2.DocumentNode.SelectSingleNode("//title");
             if (title.InnerHtml.Contains("$"))
-
-                Console.WriteLine("discovered title tag:\n" + c.Brand);
-           
+            {
+                string value= GetPropValue(c,title.InnerHtml);
+                title.innerHtml= value;
+                    Console.WriteLine("discovered title tag:\n" + c.Brand);
+            }
             var innertitle = document2.DocumentNode.SelectSingleNode("//body/h1");
 
             if (innertitle.InnerHtml.Contains("$"))
             {
+                string value= GetPropValue(c,innertitle.Attributes.ToList().FirstDefault()?.Value);
                 innertitle.Attributes["title"].Value = c.Brand;
                 Console.WriteLine(" title :\n" + innertitle.Attributes["title"].Value);
                 Console.WriteLine("discovered title tag:\n" + c.Brand);
@@ -50,6 +53,12 @@ namespace Coding.Challenge.Firstname.Lastname
              
                 
             }
+        public static string GetPropVlue(object src, string propName)
+        {
+            string prop = propName.Remove(0, propName.IndexOF('.')+1).TrimEnd('}');
+            return  Convert.Tostring(src.GetType().GetProperty(prop).GetValue(src,null));
+                
+        }
 
             }
 
