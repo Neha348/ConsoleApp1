@@ -1,4 +1,5 @@
-﻿using System;
+using System;
+using System.Collections.Generic;
 using System.Linq;
 using HtmlAgilityPack;
 
@@ -14,44 +15,82 @@ namespace Coding.Challenge.Firstname.Lastname
                                          .Where(n => n.Name == "script")
                                          .First().InnerText;
             Console.WriteLine("discovered script tag:\n" + script);
+
             //not able to understand what need to be taken for the information provided in script tag???
-            Car c = new Car(); 
-            var title = document2.DocumentNode.SelectSingleNode("//title");
-            if (title.InnerHtml.Contains("$"))
-
-                Console.WriteLine("discovered title tag:\n" + c.Brand);
-           
-            var innertitle = document2.DocumentNode.SelectSingleNode("//body/h1");
-
-            if (innertitle.InnerHtml.Contains("$"))
+            Car c = new Car();
+            var Headnode = document2.DocumentNode.SelectSingleNode("//head");
+            foreach (var nNode in Headnode.Descendants())
             {
-                innertitle.Attributes["title"].Value = c.Brand;
-                Console.WriteLine(" title :\n" + innertitle.Attributes["title"].Value);
-                Console.WriteLine("discovered title tag:\n" + c.Brand);
-            }
-
-            if (c.IsEcoFriendly == true)
-            {
-                var node = document2.DocumentNode.SelectSingleNode("//body/h2");
-                if (node.InnerHtml.Contains("$"))
-                    Console.WriteLine("discovered fuel:\n" + c.Fuel);
-                else
-                {}
-                //No need of rendering
-
-            }
-                var model = document2.DocumentNode.SelectSingleNode("//div");
-                if(model.Attributes.Contains("data-repeat-model"))
+                if (nNode.NodeType == HtmlNodeType.Element)
                 {
-                    //iteration comes in here. 
-                    foreach (string s in c.Models)
-                        Console.WriteLine(s);
+                   string value= Checkcondition(nNode, c);
+                    Console.WriteLine(nNode.Name);
+                    Console.WriteLine(value);
                 }
-             
+
+            }
+
+            var Bodynode = document2.DocumentNode.SelectSingleNode("//body");
+            foreach (var nNode in Bodynode.Descendants())
+            {
+                if (nNode.NodeType == HtmlNodeType.Element)
+                {
+                   string value= Checkcondition(nNode, c);
+                    Console.WriteLine(nNode.Name);
+                    Console.WriteLine(value);
+                }
+
+            }
+        }
+
+           
+        public static string GetPropValue(object src, string propName)
+        {
+            string prop = propName.Remove(0, propName.IndexOf('.') + 1).TrimEnd('}');
+            return Convert.ToString(src.GetType().GetProperty(prop).GetValue(src, null));
+            
+
+        }
+
+        public static string Checkcondition(HtmlNode node, object src)
+        {
+
+            if (node.Attributes.Contains("data-cond"))
+            {
+                string value = GetPropValue(src, node.Attributes.ToList().FirstOrDefault().Value);
+                if (value == "True")
+                {
+                    if (node.InnerHtml.Contains("$"))
+                    {
+                        string title = GetPropValue(src, node.InnerHtml);
+                        return Convert.ToString(title);
+                    }
+                }
+
+            }
+
+            else if (node.Attributes.Contains("data-repeat-model"))
+            {
+                // List<Car> lstRecords = new List<Car>();
+                int value = GetPropValue(src, node.Attributes.ToList().FirstOrDefault().Value).ToList().Count();
+                Console.WriteLine(value);
+                //if (node.InnerHtml.Contains("$"))
+                //{
+                //    string title = GetPropValue(src, node.InnerHtml);
+                //    return Convert.ToString(title);
+                //}               
                 
             }
-
+            else if (node.InnerHtml.Contains("$"))
+            {
+                string value = GetPropValue(src, node.InnerHtml);
+                return Convert.ToString(value);
             }
+            return "noValue";
+        }
 
+        }
+
+    
     }
 
